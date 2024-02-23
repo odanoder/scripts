@@ -3,7 +3,7 @@
 # Check if Go is installed
 if command -v go &>/dev/null; then
     # Remove the Go directory
-    rm -rf "$HOME/go"
+    sudo rm -rf "$HOME/go"
 
     # Remove the corresponding line from .bashrc
     sed -i '/export PATH=\$PATH:$HOME\/go\/bin/d' "$HOME/.bashrc"
