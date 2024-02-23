@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Если передан аргумент, использовать его как версию Go, в противном случае запросить у пользователя
+if [ -n "$1" ]; then
+    version="$1"
+else
+    read -p "Введите версию Go для установки (по умолчанию 1.21.6): " input_version
+    version=${input_version:-1.21.6}
+fi
+
+# Подготовка директории
+mkdir -p $HOME/go
+cd $HOME
+
+# Загрузка и установка выбранной версии Go
+wget "https://golang.org/dl/go$version.linux-amd64.tar.gz"
+tar -C $HOME/ -xzf "go$version.linux-amd64.tar.gz"
+rm "go$version.linux-amd64.tar.gz"
+
+# Добавление пути к бинарникам в .bashrc
+echo "export PATH=\$PATH:$HOME/go/bin" >> $HOME/.bashrc
+
+# Обновление текущей сессии
+source $HOME/.bashrc
+
+# Вывод версии Go после установки
+go version
+
+# Сообщение о завершении
+echo "Установка Go $version завершена."
