@@ -22,8 +22,7 @@ echo "export PATH=\$PATH:$HOME/go/bin" >> $HOME/.bashrc
 source $HOME/.bashrc
 
 # Вывод версии Go после установки
-go_version=$(go version)
-echo "Версия Go после установки: $go_version"
+go version
 
 # Сообщение о завершении
 echo "Установка Go $version завершена."
