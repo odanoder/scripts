@@ -2,13 +2,18 @@
 
 # Проверяем, установлен ли Go
 if command -v go &>/dev/null; then
-    # Удаляем директорию Go
-    rm -rf "$HOME/go"
+    # Проверяем наличие директории Go
+    if [ -d "$HOME/go" ]; then
+        # Удаляем директорию Go
+        sudo rm -rf "$HOME/go"
 
-    # Очищаем соответствующую строку из .bashrc
-    sed -i '/export PATH=\$PATH:$HOME\/go\/bin/d' "$HOME/.bashrc"
+        # Удаляем соответствующую строку из .bashrc
+        sed -i '/export PATH=\$PATH:$HOME\/go\/bin/d' "$HOME/.bashrc"
 
-    echo "Go успешно удален из домашней директории'${HOME}'."
+        echo "Go успешно удален из домашней директории '${HOME}'."
+    else
+        echo "Директория Go не найдена в домашней директории '${HOME}'."
+    fi
 else
-    echo "Go не найден в домашней директории '${HOME}'."
+    echo "Go не найден в системе."
 fi
