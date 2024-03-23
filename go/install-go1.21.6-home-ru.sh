@@ -19,7 +19,9 @@ rm "go$version.linux-amd64.tar.gz"
 echo "export PATH=\$PATH:$HOME/go/bin" >> $HOME/.bashrc
 
 # Обновление текущей сессии
+echo "Trying to source .bashrc"
 source $HOME/.bashrc
+echo "Sourcing .bashrc completed"
 
 # Вывод версии Go после установки
 go version
