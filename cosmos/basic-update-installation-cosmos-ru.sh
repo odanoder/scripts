@@ -29,4 +29,4 @@ execute_command sudo apt install net-tools -y
 # Установка пакетов: работа с пакетами
 execute_command sudo apt install  gcc make -y
 # Установка пакетов: для cosmos
-execute_command sudo apt install  build-essential jq -y
+execute_command sudo apt install  build-essential libssl-dev libleveldb-dev jq -y
