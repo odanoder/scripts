@@ -13,7 +13,7 @@ if [[ -z $tx_info ]]; then
 fi
 
 # Парсим результат в JSON
-tx_result=$(echo "$tx_info" | jq -r '.tx_response')
+tx_result=$(echo "$tx_info" | jq -r '.tx')
 
 # Проверяем статус транзакции
 tx_code=$(echo "$tx_result" | jq -r '.code')
@@ -23,5 +23,5 @@ if [[ $tx_code == "0" ]]; then
 else
     echo "Ошибка выполнения транзакции:"
     echo "Код ошибки: $tx_code"
-    echo "Данные об ошибке: $(echo "$tx_result" | jq -r '.data')"
+    echo "Данные об ошибке: $(echo "$tx_result" | jq -r '.raw_log')"
 fi
