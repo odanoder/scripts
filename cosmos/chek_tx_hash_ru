@@ -1,27 +1,49 @@
 #!/bin/bash
 
-# Запрашиваем у пользователя ввод хеша транзакции
+# Запрос ввода хеша транзакции
 read -p "Введите хеш транзакции: " tx_hash
 
 # Получаем информацию о транзакции
 tx_info=$(evmosd query tx $tx_hash --output json)
 
-# Проверяем, была ли найдена транзакция с указанным хешем
-if [[ -z $tx_info ]]; then
-    echo "Транзакция с указанным хешем не найдена."
+# Парсим результат в JSON и обрабатываем ошибки
+if [[ -z "$tx_info" ]]; then
+    echo "Транзакция с таким хешем не найдена."
     exit 1
 fi
 
-# Парсим результат в JSON
-tx_result=$(echo "$tx_info" | jq -r '.tx')
+# Получаем статус транзакции
+status=$(echo "$tx_info" | jq -r '.code')
 
 # Проверяем статус транзакции
-tx_code=$(echo "$tx_result" | jq -r '.code')
-
-if [[ $tx_code == "0" ]]; then
-    echo "Транзакция успешно выполнена."
-else
+if [[ $status != "0" ]]; then
     echo "Ошибка выполнения транзакции:"
-    echo "Код ошибки: $tx_code"
-    echo "Данные об ошибке: $(echo "$tx_result" | jq -r '.raw_log')"
+    echo "Код ошибки: $status"
+    echo "Данные об ошибке: $(echo "$tx_info" | jq -r '.raw_log')"
+    exit 1
 fi
+
+# Получаем дополнительные данные о транзакции
+height=$(echo "$tx_info" | jq -r '.height')
+timestamp=$(echo "$tx_info" | jq -r '.timestamp')
+gas_used=$(echo "$tx_info" | jq -r '.gas_used')
+gas_wanted=$(echo "$tx_info" | jq -r '.gas_wanted')
+fee_amount=$(echo "$tx_info" | jq -r '.tx.auth_info.fee.amount[0].amount')
+from_address=$(echo "$tx_info" | jq -r '.tx.body.messages[0].from_address')
+to_address=$(echo "$tx_info" | jq -r '.tx.body.messages[0].to_address')
+amount=$(echo "$tx_info" | jq -r '.tx.body.messages[0].amount[0].amount')
+message_type=$(echo "$tx_info" | jq -r '.tx.body.messages[0]["@type"]')
+
+# Выводим информацию о транзакции
+echo "Tx Hash: $tx_hash"
+echo "Height: $height"
+echo "Status: Failed"
+echo "Time: $timestamp"
+echo "Gas: $gas_used / $gas_wanted"
+echo "Fee: $fee_amount OG"
+echo "Memo: "
+echo "Messages: (1)"
+echo "@Type: $message_type"
+echo "From Address: $from_address"
+echo "To Address: $to_address"
+echo "Amount: $amount OG"
