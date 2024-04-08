@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Запрашиваем у пользователя ввод хеша транзакции
+read -p "Введите хеш транзакции: " tx_hash
+
+# Получаем информацию о транзакции
+tx_info=$(evmosd query tx $tx_hash --output json)
+
+# Проверяем, была ли найдена транзакция с указанным хешем
+if [[ -z $tx_info ]]; then
+    echo "Транзакция с указанным хешем не найдена."
+    exit 1
+fi
+
+# Парсим результат в JSON
+tx_result=$(echo "$tx_info" | jq -r '.tx_response')
+
+# Проверяем статус транзакции
+tx_code=$(echo "$tx_result" | jq -r '.code')
+
+if [[ $tx_code == "0" ]]; then
+    echo "Транзакция успешно выполнена."
+else
+    echo "Ошибка выполнения транзакции:"
+    echo "Код ошибки: $tx_code"
+    echo "Данные об ошибке: $(echo "$tx_result" | jq -r '.data')"
+fi
