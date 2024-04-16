@@ -19,7 +19,7 @@ execute_command() {
 execute_command sudo apt update
 execute_command sudo apt upgrade -y
 # Установка пакетов: базовые утилиты
-execute_command sudo apt install coreutils nano htop wget curl git tmux -y
+execute_command sudo apt install coreutils nano htop wget curl git tmux pstree -y
 # Установка пакетов: архиваторы
 execute_command sudo apt install tar zip lz4 -y
 # Установка пакетов: работа с директориями и дисками
