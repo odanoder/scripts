@@ -2,6 +2,8 @@
 #############################################
 ### http://$RPC_ADDRESS:14657/net_info
 ### 14657 = port RPC
+#Инструкция: https://odanoder.com/peers-cosmos-sdk-ru/
+#Guide: https://odanoder.com/peers-cosmos-sdk-en/
 #############################################
 # IP address of another node
 PEER_NODE="IP_ADDRESS_OF_ANOTHER_NODE"
