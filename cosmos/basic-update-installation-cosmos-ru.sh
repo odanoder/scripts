@@ -26,7 +26,7 @@ execute_command sudo apt upgrade -y
 base_utils="coreutils nano htop wget curl tmux"
 archivers="tar zip unzip lz4"
 dirs_disks="tree pstree ncdu nvme-cli"
-network="net-tools iptables"
+network="net-tools iptables ufw"
 packages="pkg-config make gcc git"
 cosmos="build-essential libssl-dev libleveldb-dev jq"
 
