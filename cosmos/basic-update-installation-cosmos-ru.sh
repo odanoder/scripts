@@ -23,11 +23,11 @@ execute_command sudo apt update
 execute_command sudo apt upgrade -y
 
 # Списки пакетов для установки
-base_utils="coreutils nano htop wget curl git tmux"
+base_utils="coreutils nano htop wget curl tmux"
 archivers="tar zip unzip lz4"
 dirs_disks="tree pstree ncdu nvme-cli"
 network="net-tools iptables"
-packages="pkg-config make gcc"
+packages="pkg-config make gcc git"
 cosmos="build-essential libssl-dev libleveldb-dev jq"
 
 # Установка пакетов: базовые утилиты
