@@ -51,23 +51,98 @@ create_user() {
     echo "Группы: $groups"
 }
 
+# Функция для изменения порта SSH
+change_ssh_port() {
+    echo "Введите новый порт для SSH:"
+    read -r new_port
+
+    # Проверка, что порт является числом и находится в допустимом диапазоне
+    if [[ ! "$new_port" =~ ^[0-9]+$ ]] || [ "$new_port" -lt 1 ] || [ "$new_port" -gt 65535 ]; then
+        echo "Неверный порт. Пожалуйста, введите числовое значение от 1 до 65535."
+        return
+    fi
+
+    # Замена порта в конфигурационном файле
+    sudo sed -i "s/^#Port 22/Port $new_port/" /etc/ssh/sshd_config
+
+    # Вывод нового порта из конфигурационного файла
+    grep "^Port" /etc/ssh/sshd_config
+
+    # Перезапуск SSH сервиса
+    sudo systemctl restart ssh
+    echo "Порт SSH изменен на $new_port и служба SSH перезапущена."
+}
+
+# Функция для изменения PermitRootLogin
+change_permit_root_login() {
+    echo "Введите новое значение для PermitRootLogin (yes/no/prohibit-password):"
+    read -r new_value
+
+    # Изменение PermitRootLogin в конфигурационном файле
+    sudo sed -i "s/^#PermitRootLogin .*/PermitRootLogin $new_value/" /etc/ssh/sshd_config
+
+    # Если значение отличается от "prohibit-password", убедиться, что строка активна
+    if [[ "$new_value" != "prohibit-password" ]]; then
+        sudo sed -i "s/^PermitRootLogin .*/PermitRootLogin $new_value/" /etc/ssh/sshd_config
+    fi
+
+    # Перезапуск SSH сервиса
+    sudo systemctl restart ssh
+    echo "PermitRootLogin изменен на $new_value и служба SSH перезапущена."
+}
+
+# Функция для добавления пользователя в DenyUsers
+add_user_to_denyusers() {
+    echo "Введите имя пользователя для добавления в DenyUsers:"
+    read -r deny_user
+
+    # Добавление пользователя в DenyUsers
+    sudo sed -i "/^DenyUsers/c\DenyUsers $deny_user" /etc/ssh/sshd_config
+
+    # Перезапуск SSH сервиса
+    sudo systemctl restart ssh
+    echo "Пользователь $deny_user добавлен в DenyUsers и служба SSH перезапущена."
+}
+
 # Главное меню
 while true; do
-    echo "Выберите тип пользователя для создания:"
-    echo "1) User для авторизации (no sudo)"
-    echo "2) Base user"
-    echo "3) Выход"
+    echo "Выберите действие:"
+    echo "1) Создать пользователя"
+    echo "2) Сменить порт SSH"
+    echo "3) Изменить PermitRootLogin"
+    echo "4) Добавить пользователя в DenyUsers"
+    echo "5) Выход"
 
     read -r choice
 
     case $choice in
         1)
-            create_user "monitoring" "no"
+            echo "Выберите тип пользователя для создания:"
+            echo "1) User для авторизации (no sudo)"
+            echo "2) Base user"
+            read -r user_choice
+            case $user_choice in
+                1)
+                    create_user "monitoring" "no"
+                    ;;
+                2)
+                    create_user "admin" "yes"
+                    ;;
+                *)
+                    echo "Неверный выбор. Пожалуйста, попробуйте снова."
+                    ;;
+            esac
             ;;
         2)
-            create_user "admin" "yes"
+            change_ssh_port
             ;;
         3)
+            change_permit_root_login
+            ;;
+        4)
+            add_user_to_denyusers
+            ;;
+        5)
             echo "Выход из программы."
             break
             ;;
