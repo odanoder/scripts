@@ -1,54 +1,79 @@
 #!/bin/bash
 
-# Запрос имени пользователя
-read -p "Введите имя нового пользователя: " username
+# Функция для создания пользователя
+create_user() {
+    local default_name="$1"
+    local add_sudo="$2"
 
-# Создание нового пользователя
-sudo adduser "$username"
+    echo "Введите имя пользователя (по умолчанию: $default_name):"
+    read -r username
 
-# Подтверждение добавления в группы
-read -p "Создание пользователя завершено. Хотите продолжить добавление пользователя в группы? (y/n): " continue_choice
+    # Если имя пользователя не введено, используем имя по умолчанию
+    username=${username:-$default_name}
 
-if [[ "$continue_choice" =~ ^[yY]$ ]]; then
-    # Запрос групп для добавления
-    echo "Выберите группы, в которые нужно добавить пользователя:"
-    echo "1) sudo"
-    echo "2) docker"
-    read -p "Введите номера групп через пробел (например, 1 2): " -a groups
+    # Создание пользователя
+    sudo adduser "$username"
 
-    # Обработка выбранных групп
-    for group in "${groups[@]}"; do
-        case $group in
-            1)
-                sudo usermod -aG sudo "$username"
-                echo "Пользователь $username добавлен в группу sudo."
-                ;;
-            2)
-                sudo usermod -aG docker "$username"
-                echo "Пользователь $username добавлен в группу docker."
-                ;;
-            *)
-                echo "Некорректный выбор: $group"
-                ;;
-        esac
-    done
+    # Если указан параметр sudo, предложить варианты добавления в группы
+    if [ "$add_sudo" = "yes" ]; then
+        echo "Выберите группы для добавления:"
+        echo "1) sudo"
+        echo "2) docker"
+        echo "Введите номера групп через пробел (например, 1 2):"
+        read -r groups_choice
 
-    # Проверка добавленности в группы
-    echo "Проверка добавленности пользователя $username в группы:"
-    groups_output=$(groups "$username")
-    echo "$groups_output"
+        for group in $groups_choice; do
+            case $group in
+                1)
+                    sudo usermod -aG sudo "$username"
+                    ;;
+                2)
+                    sudo usermod -aG docker "$username"
+                    ;;
+                *)
+                    echo "Неверный выбор группы: $group"
+                    ;;
+            esac
+        done
+    fi
 
-    # Получение информации о пользователе
-    home_dir=$(eval echo ~$username)
-    user_groups=$(id -Gn "$username" | tr ' ' ',')
+    # Вывод данных о пользователе
+    home_dir=$(getent passwd "$username" | cut -d: -f6)
+    if [ -d "$home_dir" ]; then
+        home_dir_status="$home_dir"
+    else
+        home_dir_status="false"
+    fi
+    groups=$(id -Gn "$username" | tr ' ' ',')
 
-    # Вывод информации
-    echo "Информация о пользователе:"
-    echo "Имя пользователя: $username"
-    echo "Домашний каталог: $home_dir"
-    echo "Группы: $user_groups"
-else
-    echo "Добавление пользователя в группы отменено."
-fi
+    echo "Пользователь: $username"
+    echo "Домашний каталог: $home_dir_status"
+    echo "Группы: $groups"
+}
 
-echo "Процесс завершен."
+# Главное меню
+while true; do
+    echo "Выберите тип пользователя для создания:"
+    echo "1) User для авторизации (no sudo)"
+    echo "2) Base user"
+    echo "3) Выход"
+
+    read -r choice
+
+    case $choice in
+        1)
+            create_user "monitoring" "no"
+            ;;
+        2)
+            create_user "admin" "yes"
+            ;;
+        3)
+            echo "Выход из программы."
+            break
+            ;;
+        *)
+            echo "Неверный выбор. Пожалуйста, попробуйте снова."
+            ;;
+    esac
+    echo "----------------------------------------"
+done
