@@ -1,5 +1,27 @@
 #!/bin/bash
 
+# Функция для обновления списка пакетов
+update_list() {
+    echo "Обновление списка пакетов..."
+    sudo apt update > /dev/null 2>&1
+    echo -e "\n###**********###"
+    echo "Список пакетов обновлен"
+    echo "Package list updated"
+    echo -e "\n###**********###"
+}
+
+# Функция для обновления списка пакетов и установки обновлений
+update_and_upgrade() {
+    echo "Обновление списка пакетов и установка обновлений..."
+    sudo apt update > /dev/null 2>&1
+    result=$(sudo apt upgrade -y 2>&1 | tail -n 1)
+    echo -e "\n###**********###"
+    echo "Список пакетов обновлен, пакеты установлены:"
+    echo "Package list updated, packages installed:"
+    echo "$result"
+    echo -e "\n###**********###"
+}
+
 # Функция для создания пользователя
 create_user() {
     local default_name="$1"
@@ -14,27 +36,9 @@ create_user() {
     # Создание пользователя
     sudo adduser "$username"
 
-    # Если указан параметр sudo, предложить варианты добавления в группы
+    # Если указан параметр sudo, добавить пользователя в группу sudo
     if [ "$add_sudo" = "yes" ]; then
-        echo "Выберите группы для добавления:"
-        echo "1) sudo"
-        echo "2) docker"
-        echo "Введите номера групп через пробел (например, 1 2):"
-        read -r groups_choice
-
-        for group in $groups_choice; do
-            case $group in
-                1)
-                    sudo usermod -aG sudo "$username"
-                    ;;
-                2)
-                    sudo usermod -aG docker "$username"
-                    ;;
-                *)
-                    echo "Неверный выбор группы: $group"
-                    ;;
-            esac
-        done
+        sudo usermod -aG sudo "$username"
     fi
 
     # Вывод данных о пользователе
@@ -49,6 +53,39 @@ create_user() {
     echo "Пользователь: $username"
     echo "Домашний каталог: $home_dir_status"
     echo "Группы: $groups"
+}
+
+# Функция для добавления пользователя в группы
+add_to_groups() {
+    echo "Введите имя пользователя, которого нужно добавить в группы:"
+    read -r username
+
+    if ! id "$username" &>/dev/null; then
+        echo "Пользователь $username не существует."
+        return
+    fi
+
+    echo "Выберите группы для добавления:"
+    echo "1) sudo"
+    echo "2) docker"
+    echo "Введите номера групп через пробел (например, 1 2):"
+    read -r groups_choice
+
+    for group in $groups_choice; do
+        case $group in
+            1)
+                sudo usermod -aG sudo "$username"
+                ;;
+            2)
+                sudo usermod -aG docker "$username"
+                ;;
+            *)
+                echo "Неверный выбор группы: $group"
+                ;;
+        esac
+    done
+
+    echo "Пользователь $username добавлен в указанные группы."
 }
 
 # Функция для изменения порта SSH
@@ -107,42 +144,61 @@ add_user_to_denyusers() {
 # Главное меню
 while true; do
     echo "Выберите действие:"
-    echo "1) Создать пользователя"
-    echo "2) Сменить порт SSH"
-    echo "3) Изменить PermitRootLogin"
-    echo "4) Добавить пользователя в DenyUsers"
-    echo "5) Выход"
+    echo "1) Обновить список пакетов"
+    echo "2) Установить обновления"
+    echo "3) User для авторизации (no sudo)"
+    echo "4) User для работы (sudo)"
+    echo "5) Добавить в группы"
+    echo "6) Сменить порт SSH"
+    echo "7) Root изменить PermitRootLogin"
+    echo "8) Добавить пользователя в DenyUsers"
+    echo "9) Выход"
 
     read -r choice
 
     case $choice in
         1)
-            echo "Выберите тип пользователя для создания:"
-            echo "1) User для авторизации (no sudo)"
-            echo "2) Base user"
-            read -r user_choice
-            case $user_choice in
-                1)
-                    create_user "monitoring" "no"
-                    ;;
-                2)
-                    create_user "admin" "yes"
-                    ;;
-                *)
-                    echo "Неверный выбор. Пожалуйста, попробуйте снова."
-                    ;;
-            esac
+            update_list
             ;;
         2)
-            change_ssh_port
+            update_and_upgrade
             ;;
         3)
-            change_permit_root_login
+            create_user "monitoring" "no"
             ;;
         4)
-            add_user_to_denyusers
+            create_user "admin" "yes"
             ;;
         5)
+            while true; do
+                echo "Выберите действие:"
+                echo "1) sudo"
+                echo "2) docker"
+                echo "3) Главное меню"
+                read -r group_choice
+                case $group_choice in
+                    1|2)
+                        add_to_groups
+                        ;;
+                    3)
+                        break
+                        ;;
+                    *)
+                        echo "Неверный выбор. Пожалуйста, попробуйте снова."
+                        ;;
+                esac
+            done
+            ;;
+        6)
+            change_ssh_port
+            ;;
+        7)
+            change_permit_root_login
+            ;;
+        8)
+            add_user_to_denyusers
+            ;;
+        9)
             echo "Выход из программы."
             break
             ;;
