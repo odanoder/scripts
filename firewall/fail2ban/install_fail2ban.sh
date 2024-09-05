@@ -1,22 +1,27 @@
 #!/bin/bash
 
+# Обновление списка пакетов и установка обновлений
 echo "Обновление списка пакетов и установка обновлений..."
 sudo apt update && sudo apt upgrade -y
 
+# Установка Fail2Ban
 echo "Установка Fail2Ban..."
-sudo apt install fail2ban -y
-
-echo "Проверка статуса Fail2Ban..."
-sudo systemctl status fail2ban | grep "Active:"
-
-if sudo systemctl status fail2ban | grep -q "inactive (dead)"; then
-    echo "Fail2Ban не запущен (inactive)."
-elif sudo systemctl status fail2ban | grep -q "active (running)"; then
-    echo "Fail2Ban запущен и работает (active)."
+if sudo apt install fail2ban -y; then
+    echo "Fail2Ban успешно установлен."
 else
-    echo "Fail2Ban запущен, но с ошибками."
+    echo "Ошибка при установке Fail2Ban."
+    exit 1
 fi
 
+# Проверка статуса Fail2Ban
+echo "Проверка статуса Fail2Ban..."
+if sudo systemctl is-active --quiet fail2ban; then
+    echo "Fail2Ban запущен и работает (active)."
+else
+    echo "Fail2Ban не запущен (inactive)."
+fi
+
+# Создание резервной копии конфигурационного файла
 echo "Создание резервной копии конфигурационного файла..."
 if [ -f /etc/fail2ban/jail.conf ]; then
     sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
@@ -36,4 +41,8 @@ else
 fi
 
 echo -e "\nПроверка статуса Fail2Ban..."
-sudo systemctl status fail2ban | grep "Active:"
+if sudo systemctl is-active --quiet fail2ban; then
+    echo "Fail2Ban запущен и работает (active)."
+else
+    echo "Fail2Ban не запущен (inactive)."
+fi
