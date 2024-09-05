@@ -36,7 +36,7 @@ create_user() {
     # Создание пользователя
     sudo adduser "$username"
 
-    # Если указан параметр sudo, добавить пользователя в группу sudo
+    # Если указан параметр sudo, добавить в группу sudo
     if [ "$add_sudo" = "yes" ]; then
         sudo usermod -aG sudo "$username"
     fi
@@ -56,14 +56,9 @@ create_user() {
 }
 
 # Функция для добавления пользователя в группы
-add_to_groups() {
-    echo "Введите имя пользователя, которого нужно добавить в группы:"
+add_user_to_groups() {
+    echo "Введите имя пользователя для добавления в группы:"
     read -r username
-
-    if ! id "$username" &>/dev/null; then
-        echo "Пользователь $username не существует."
-        return
-    fi
 
     echo "Выберите группы для добавления:"
     echo "1) sudo"
@@ -84,7 +79,6 @@ add_to_groups() {
                 ;;
         esac
     done
-
     echo "Пользователь $username добавлен в указанные группы."
 }
 
@@ -99,11 +93,12 @@ change_ssh_port() {
         return
     fi
 
-    # Замена порта в конфигурационном файле
-    sudo sed -i "s/^#Port 22/Port $new_port/" /etc/ssh/sshd_config
-
-    # Вывод нового порта из конфигурационного файла
-    grep "^Port" /etc/ssh/sshd_config
+    # Проверка и замена порта в конфигурационном файле
+    if grep -q "^Port" /etc/ssh/sshd_config; then
+        sudo sed -i "s/^Port .*/Port $new_port/" /etc/ssh/sshd_config
+    else
+        sudo sed -i "/^#Port 22/a\Port $new_port" /etc/ssh/sshd_config
+    fi
 
     # Перезапуск SSH сервиса
     sudo systemctl restart ssh
@@ -116,11 +111,10 @@ change_permit_root_login() {
     read -r new_value
 
     # Изменение PermitRootLogin в конфигурационном файле
-    sudo sed -i "s/^#PermitRootLogin .*/PermitRootLogin $new_value/" /etc/ssh/sshd_config
-
-    # Если значение отличается от "prohibit-password", убедиться, что строка активна
-    if [[ "$new_value" != "prohibit-password" ]]; then
+    if grep -q "^PermitRootLogin" /etc/ssh/sshd_config; then
         sudo sed -i "s/^PermitRootLogin .*/PermitRootLogin $new_value/" /etc/ssh/sshd_config
+    else
+        sudo sed -i "/^#PermitRootLogin .*/a\PermitRootLogin $new_value" /etc/ssh/sshd_config
     fi
 
     # Перезапуск SSH сервиса
@@ -133,8 +127,12 @@ add_user_to_denyusers() {
     echo "Введите имя пользователя для добавления в DenyUsers:"
     read -r deny_user
 
-    # Добавление пользователя в DenyUsers
-    sudo sed -i "/^DenyUsers/c\DenyUsers $deny_user" /etc/ssh/sshd_config
+    # Добавление пользователя в DenyUsers, сохраняя существующие данные
+    if grep -q "^DenyUsers" /etc/ssh/sshd_config; then
+        sudo sed -i "/^DenyUsers/c\DenyUsers $(grep '^DenyUsers' /etc/ssh/sshd_config | sed 's/DenyUsers //') $deny_user" /etc/ssh/sshd_config
+    else
+        echo "DenyUsers $deny_user" | sudo tee -a /etc/ssh/sshd_config
+    fi
 
     # Перезапуск SSH сервиса
     sudo systemctl restart ssh
@@ -144,8 +142,8 @@ add_user_to_denyusers() {
 # Главное меню
 while true; do
     echo "Выберите действие:"
-    echo "1) Обновить список пакетов"
-    echo "2) Установить обновления"
+    echo "1) Update"
+    echo "2) Update + Upgrade"
     echo "3) User для авторизации (no sudo)"
     echo "4) User для работы (sudo)"
     echo "5) Добавить в группы"
@@ -170,24 +168,7 @@ while true; do
             create_user "admin" "yes"
             ;;
         5)
-            while true; do
-                echo "Выберите действие:"
-                echo "1) sudo"
-                echo "2) docker"
-                echo "3) Главное меню"
-                read -r group_choice
-                case $group_choice in
-                    1|2)
-                        add_to_groups
-                        ;;
-                    3)
-                        break
-                        ;;
-                    *)
-                        echo "Неверный выбор. Пожалуйста, попробуйте снова."
-                        ;;
-                esac
-            done
+            add_user_to_groups
             ;;
         6)
             change_ssh_port
