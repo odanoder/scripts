@@ -1,53 +1,65 @@
 #!/bin/bash
 
-# Установка необходимых пакетов
-sudo apt update
-sudo apt install -y wget tar
+# Установка Node Exporter
 
-# Создание пользователя для node_exporter
+# Запрос порта у пользователя
+read -p "Введите порт для Node Exporter или нажмите Enter для использования порта по умолчанию (9100): " port
+port=${port:-9100}
+
+# Создание пользователя node_exporter
 sudo useradd --no-create-home --shell /bin/false node_exporter
 
-# Создание директорий для хранения данных и конфигураций
-sudo mkdir -p /etc/node_exporter
-sudo mkdir -p /var/lib/node_exporter
+# Переход в домашний каталог
+cd ~
 
-# Загрузка и установка node_exporter
-wget https://github.com/prometheus/node_exporter/releases/download/v1.8.2/node_exporter-1.8.2.linux-amd64.tar.gz
-tar -xvf node_exporter-1.8.2.linux-amd64.tar.gz
+# Загрузка Node Exporter
+wget https://github.com/prometheus/node_exporter/releases/download/v1.8.2/node_exporter-1.8.2.linux-amd64.tar.gz || { echo "Ошибка загрузки файла"; exit 1; }
 
-# Перемещение бинарных файлов в /usr/local/bin
-sudo cp node_exporter-1.8.2.linux-amd64/node_exporter /usr/local/bin/
+# Распаковка архива
+tar xvf node_exporter-1.8.2.linux-amd64.tar.gz || { echo "Ошибка распаковки архива"; exit 1; }
 
-# Установка прав для пользователя node_exporter
+# Переход в распакованную директорию
+cd node_exporter-1.8.2.linux-amd64
+
+# Перемещение бинарного файла в /usr/local/bin
+sudo cp node_exporter /usr/local/bin/
+
+# Назначение владельца файла
 sudo chown node_exporter:node_exporter /usr/local/bin/node_exporter
 
-# Удаление временных файлов
-rm -rf node_exporter-1.8.2.linux-amd64.tar.gz node_exporter-1.8.2.linux-amd64
+# Проверка версии Node Exporter
+node_exporter --version
 
-# Создание systemd сервиса для node_exporter
-sudo tee /etc/systemd/system/node_exporter.service > /dev/null <<EOF
+# Создание сервисного файла systemd
+sudo tee /etc/systemd/system/node_exporterd.service > /dev/null <<EOF
 [Unit]
-Description=Prometheus Node Exporter
+Description=Node Exporter
 Wants=network-online.target
 After=network-online.target
 
 [Service]
 User=node_exporter
 Group=node_exporter
-Type=simple
-ExecStart=/usr/local/bin/node_exporter
+ExecStart=/usr/local/bin/node_exporter --web.listen-address=:$port
+
+# Настройки перезапуска
+Restart=on-failure
+RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
-# Перезагрузка systemd и запуск node_exporter
+# Перезапуск systemd и активация службы
 sudo systemctl daemon-reload
-sudo systemctl start node_exporter
-sudo systemctl enable node_exporter
+sudo systemctl enable node_exporterd
+sudo systemctl restart node_exporterd
 
 # Проверка статуса сервиса
-sudo systemctl status node_exporter
+sudo systemctl status node_exporterd
 
-# Вывод URL для проверки работы node_exporter
-echo -e "\033[0;32mhttp://$(wget -qO- eth0.me):9100/metrics\033[0m"
+# Проверка, что метрики отдаются
+curl "localhost:$port/metrics" || { echo "Node Exporter не доступен"; exit 1; }
+
+# Вывод ссылки для просмотра метрик в браузере
+echo -e "\033[0;32mhttp://$(curl -s ifconfig.me):$port/\033[0m"
