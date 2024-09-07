@@ -20,10 +20,17 @@ sudo apt-get install -y adduser libfontconfig1 musl
 wget https://dl.grafana.com/oss/release/grafana_11.2.0_amd64.deb
 sudo dpkg -i grafana_11.2.0_amd64.deb
 
+# Запрос порта у пользователя
+read -p "Введите порт для Grafana (по умолчанию 3000): " PORT
+PORT=${PORT:-3000}
+
+# Изменение конфигурации порта
+sudo sed -i "s/^;http_port = 3000/http_port = $PORT/" /etc/grafana/grafana.ini
+
 # Перезагрузка и запуск сервиса Grafana
 sudo systemctl daemon-reload
 sudo systemctl enable grafana-server
 sudo systemctl restart grafana-server
 
 # Вывод URL для доступа к Grafana
-echo -e "\033[0;32mhttp://$(wget -qO- eth0.me):3000/\033[0m"
+echo -e "\033[0;32mhttp://$(wget -qO- eth0.me):$PORT/\033[0m"
