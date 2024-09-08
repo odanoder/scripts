@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Установка необходимых пакетов
-sudo apt-get update
-sudo apt-get install -y apt-transport-https software-properties-common wget
+sudo apt update
+sudo apt install -y apt-transport-https software-properties-common wget
 
 # Импорт ключа GPG
 sudo mkdir -p /etc/apt/keyrings/
@@ -13,8 +13,8 @@ echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stab
 echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com beta main" | sudo tee -a /etc/apt/sources.list.d/grafana.list
 
 # Установка дополнительных пакетов
-sudo apt-get update
-sudo apt-get install -y adduser libfontconfig1 musl
+sudo apt update
+sudo apt install -y adduser libfontconfig1 musl
 
 # Скачивание и установка Grafana
 wget https://dl.grafana.com/oss/release/grafana_11.2.0_amd64.deb
