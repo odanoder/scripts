@@ -6,7 +6,6 @@ function colors {
 }
 colors
 
-# Вывод текста OdaNoder в стиле ASCII-art
 echo -e "${NORMAL} #   ####    ####       ##              ##  ##    ####    ####     ######   #####    #${NORMAL}"
 echo -e "${NORMAL} #  ##  ##   ## ##     ####             ### ##   ##  ##   ## ##    ##       ##  ##   #${NORMAL}"
 echo -e "${NORMAL} #  ##  ##   ##  ##   ##  ##            ######   ##  ##   ##  ##   #####    ##  ##   #${NORMAL}"
