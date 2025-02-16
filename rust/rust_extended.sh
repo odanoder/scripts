@@ -37,3 +37,12 @@ while true; do
     esac
     echo ""
 done
+
+
+# Когда Rust устанавливается через скрипт sh -s -- -y, параметр -y автоматически принимает все стандартные настройки без необходимости ручного выбора.
+# По умолчанию Rust установится с default toolchain (stable) и добавит cargo, rustc, rustup в ~/.cargo/bin.
+# После выполнения source $HOME/.cargo/env они будут доступны в текущей сессии.
+# rustup show   Показать текущую версию
+# rustup update   Обновить Rust до актуальной версии
+# rustup default stable  Назначить стабильную версию по умолчанию
+# rustup default nightly Переключиться на nightly-версию
