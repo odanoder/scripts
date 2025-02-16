@@ -6,8 +6,7 @@ install_rust() {
     sudo apt install curl make clang pkg-config libssl-dev build-essential git mc jq unzip wget -y
     curl https://sh.rustup.rs -sSf | sh -s -- -y
     source $HOME/.cargo/env
-    echo "Rust установлен. Перезапускаем оболочку..."
-    exec bash
+    echo "Rust установлен."
 }
 
 update_rust() {
@@ -21,22 +20,34 @@ show_rust_version() {
     rustc --version
 }
 
+remove_rust() {
+    echo "Удаляем Rust..."
+    rustup self uninstall -y
+    rm -rf $HOME/.cargo $HOME/.rustup
+    echo "Rust полностью удален!"
+}
+
 while true; do
-    echo "Выберите действие:"
+    echo -e "\nВыберите действие:"
     echo "1) Установить Rust"
     echo "2) Обновить Rust"
     echo "3) Показать текущую версию Rust"
+    echo "4) Удалить Rust"
     echo "0) Выйти из скрипта"
-    read -p "Введите номер пункта: " choice
+    read -p "Введите номер пункта (0-4): " choice </dev/tty
+
+    if [[ ! $choice =~ ^[0-4]$ ]]; then
+        echo "Неверный выбор! Попробуйте снова."
+        continue
+    fi
 
     case $choice in
         1) install_rust ;;
         2) update_rust ;;
         3) show_rust_version ;;
+        4) remove_rust ;;
         0) echo "Выход из скрипта."; exit 0 ;;
-        *) echo "Неверный выбор! Попробуйте снова." ;;
     esac
-    echo ""
 done
 
 # Когда Rust устанавливается через скрипт sh -s -- -y, параметр -y автоматически принимает все стандартные настройки без необходимости ручного выбора.
