@@ -6,7 +6,7 @@ sudo apt update -y
 
 # Установка базовых утилит
 echo "Установка базовых утилит..."
-sudo apt install -y coreutils nano htop wget curl tmux mc jq
+sudo apt install -y coreutils nano wget curl tmux mc jq
 
 # Установка утилит мониторинга
 echo "Установка утилит мониторинга..."
@@ -18,19 +18,28 @@ sudo apt install -y tar zip unzip lz4
 
 # Установка дисковых утилит
 echo "Установка дисковых утилит..."
-sudo apt install -y tree pstree ncdu nvme-cli
+sudo apt install -y tree ncdu nvme-cli
 
 # Установка сетевых утилит
 echo "Установка сетевых утилит..."
-sudo apt install -y net-tools iptables ufw netcat
+sudo apt install -y net-tools ufw netcat
 
 # Установка пакетных утилит и инструментов разработки
 echo "Установка инструментов разработки..."
-sudo apt install -y pkg-config make gcc g++ cmake clang git build-essential
+sudo apt install -y pkg-config make cmake clang git build-essential
 
 # Установка криптографических библиотек
 echo "Установка криптографических библиотек..."
 sudo apt install -y libssl-dev ca-certificates
+
+# Установка cron
+echo "Установка cron..."
+sudo apt install -y cron
+sudo systemctl enable cron
+sudo systemctl start cron
+
+# Вывод завершения установки
+echo "Установка завершена!"
 
 # Вывод завершения установки
 echo "Установка завершена!"
@@ -58,13 +67,9 @@ echo "Установка завершена!"
 # `netcat` (nc) – инструмент диагностики сети и передачи данных  
 # `pkg-config` – управление зависимостями библиотек  
 # `make` – автоматизация сборки программ  
-# `gcc` – компилятор C  
-# `g++` – компилятор C++  
 # `cmake` – система сборки проектов  
 # `clang` – компилятор C/C++ (альтернатива GCC)  
 # `git` – система управления версиями  
 # `build-essential` – метапакет с компиляторами и инструментами разработки 
 # `libssl-dev` – заголовочные файлы для OpenSSL  
 # `ca-certificates` – корневые сертификаты для работы HTTPS
-
-
